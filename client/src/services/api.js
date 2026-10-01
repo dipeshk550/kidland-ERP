@@ -23,13 +23,11 @@ api.interceptors.response.use(
 
     // Only redirect to login if 401 on non-auth-check routes
     if (status === 401 && !url.includes('/auth/me')) {
-      const savedUser = localStorage.getItem('ks_user')
-      if (!savedUser) {
-        localStorage.removeItem('ks_token')
-        const path = window.location.pathname
-        if (!path.endsWith('/login')) {
-          window.location.href = path.startsWith('/teacher') ? '/teacher/login' : path.startsWith('/parent') ? '/parent/login' : '/admin/login'
-        }
+      localStorage.removeItem('ks_token')
+      localStorage.removeItem('ks_user')
+      const path = window.location.pathname
+      if (!path.endsWith('/login')) {
+        window.location.href = path.startsWith('/teacher') ? '/teacher/login' : path.startsWith('/parent') ? '/parent/login' : '/admin/login'
       }
     }
 
