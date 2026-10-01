@@ -1,0 +1,10 @@
+const r = require('express').Router()
+const { getAll, getOne, create, update, remove } = require('../controllers/crudController')
+const { Teacher } = require('../models/index')
+const { protect, authorize } = require('../middleware/authMiddleware')
+r.get('/', (req, _res, next) => { if (!req.query.sort) req.query.sort = 'order name'; next() }, getAll(Teacher))
+r.get('/:id', getOne(Teacher))
+r.post('/', protect, authorize('teachers'), create(Teacher))
+r.put('/:id', protect, authorize('teachers'), update(Teacher))
+r.delete('/:id', protect, authorize('teachers'), remove(Teacher))
+module.exports = r

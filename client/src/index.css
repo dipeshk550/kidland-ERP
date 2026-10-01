@@ -1,0 +1,107 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    @apply bg-slate-50 dark:bg-gray-950 text-gray-800 dark:text-gray-100 antialiased;
+    /* Prevent horizontal overflow globally */
+    overflow-x: hidden;
+  }
+  img, video { max-width: 100%; height: auto; display: block; }
+}
+
+@layer components {
+  /* ── Layout ─────────────────────────────── */
+  .wrap      { @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8; }
+  .section   { @apply py-14 md:py-20 lg:py-24; }
+  .page-hero { @apply py-16 md:py-20 lg:py-24; }
+
+  /* ── Buttons ─────────────────────────────── */
+  .btn         { @apply inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed select-none; }
+  .btn-primary { @apply btn text-sm px-5 py-2.5 bg-primary-400 hover:bg-primary-500 text-white shadow-md hover:shadow-lg hover:shadow-primary-400/30 hover:-translate-y-px; }
+  .btn-navy    { @apply btn text-sm px-5 py-2.5 bg-navy text-white hover:bg-navy-700 shadow-md hover:-translate-y-px; }
+  .btn-outline { @apply btn text-sm px-5 py-2.5 border-2 border-primary-400 text-primary-500 hover:bg-primary-400 hover:text-white; }
+  .btn-outline-white { @apply btn text-sm px-5 py-2.5 border-2 border-white/60 text-white hover:bg-white hover:text-navy; }
+  .btn-ghost   { @apply btn text-sm px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg; }
+  .btn-danger  { @apply btn text-sm px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white; }
+  .btn-lg      { @apply !px-8 !py-4 !text-base; }
+
+  /* ── Cards ───────────────────────────────── */
+  .card       { @apply bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm; }
+  .card-hover { @apply card transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5 hover:border-primary-100 dark:hover:border-primary-900; }
+
+  /* ── Content image — consistent, no overflow ── */
+  .content-img {
+    @apply w-full rounded-2xl overflow-hidden shadow-xl object-cover;
+    aspect-ratio: 4/3;
+  }
+
+  /* ── Form ────────────────────────────────── */
+  .field       { @apply w-full px-4 py-3 text-sm rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-400/30 focus:border-primary-400 transition-all; }
+  .field-error { @apply !border-red-400 focus:!ring-red-400/30 focus:!border-red-400; }
+  .label       { @apply block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5; }
+  .error-msg   { @apply text-red-500 text-xs mt-1; }
+
+  /* ── Badges ──────────────────────────────── */
+  .badge        { @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold; }
+  .badge-green  { @apply badge bg-green-50  text-green-700  dark:bg-green-900/30  dark:text-green-400; }
+  .badge-blue   { @apply badge bg-blue-50   text-blue-700   dark:bg-blue-900/30   dark:text-blue-400; }
+  .badge-yellow { @apply badge bg-amber-50  text-amber-700  dark:bg-amber-900/30  dark:text-amber-400; }
+  .badge-red    { @apply badge bg-red-50    text-red-700    dark:bg-red-900/30    dark:text-red-400; }
+  .badge-gray   { @apply badge bg-gray-100  text-gray-600   dark:bg-gray-800      dark:text-gray-400; }
+  .badge-navy   { @apply badge bg-blue-50   text-navy       dark:bg-blue-900/30   dark:text-blue-300; }
+
+  /* ── Section typography ──────────────────── */
+  .section-tag   { @apply text-[11px] font-bold tracking-[3px] uppercase text-primary-400; }
+  .section-title { @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white leading-tight; }
+  .section-sub   { @apply text-gray-500 dark:text-gray-400 text-sm md:text-base leading-relaxed max-w-2xl; }
+  .section-div   { @apply w-10 h-1 rounded-full mt-3 mb-5 bg-gradient-to-r from-primary-400 to-primary-300; }
+
+  /* ── Admin ───────────────────────────────── */
+  .admin-sidebar    { @apply fixed left-0 top-0 h-full bg-navy-900 dark:bg-gray-950 text-white z-40 transition-all duration-300 overflow-hidden flex flex-col; }
+  .admin-nav-item   { @apply flex items-center gap-3 px-3 py-2.5 mx-2 rounded-xl text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-150; }
+  .admin-nav-item.active { @apply bg-primary-400/20 text-primary-300 border-l-2 border-primary-400; }
+  .table-head       { @apply text-xs font-bold text-gray-400 uppercase tracking-widest px-4 py-3 text-left whitespace-nowrap; }
+  .table-cell       { @apply px-4 py-3 text-sm text-gray-700 dark:text-gray-300 align-middle; }
+  .table-row        { @apply border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-colors; }
+}
+
+/* ── Scrollbar ───────────────────────────────── */
+::-webkit-scrollbar         { width: 5px; height: 5px; }
+::-webkit-scrollbar-track   { background: #f1f5f9; }
+::-webkit-scrollbar-thumb   { background: #54B435; border-radius: 4px; }
+.dark ::-webkit-scrollbar-track { background: #1e293b; }
+.dark ::-webkit-scrollbar-thumb { background: #41a020; }
+.scrollbar-hide                  { scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* ── Background patterns ─────────────────────── */
+.bg-dots { background-image: radial-gradient(rgba(84,180,53,0.15) 1px, transparent 1px); background-size: 22px 22px; }
+.bg-grid { background-image: linear-gradient(rgba(84,180,53,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(84,180,53,0.05) 1px, transparent 1px); background-size: 32px 32px; }
+
+/* ── Text gradient ───────────────────────────── */
+.text-gradient { background: linear-gradient(135deg, #54B435, #86ef67); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+/* ── Notice ticker ───────────────────────────── */
+@keyframes ticker { 0% { transform: translateX(0) } 100% { transform: translateX(-50%) } }
+.ticker       { animation: ticker 24s linear infinite; top: 0; left: 0; width: max-content; }
+.ticker:hover { animation-play-state: paused; }
+
+/* ── Page enter animation ────────────────────── */
+@keyframes pageEnter { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: translateY(0) } }
+.page-enter { animation: pageEnter 0.4s ease-out both; }
+
+/* ── WhatsApp chat ───────────────────────────── */
+.wa-chat-bg { background-color: #ECE5DD; }
+.dark .wa-chat-bg { background-color: #1a2234; }
+
+/* ── Responsive image containers ─────────────── */
+.img-cover { @apply w-full h-full object-cover; }
+
+/* ── Hero section — never causes horizontal overflow ── */
+.hero-section { @apply relative overflow-hidden w-full; }

@@ -1,0 +1,11 @@
+const r = require('express').Router()
+const c = require('../controllers/whatsappController')
+const { protect, authorize } = require('../middleware/authMiddleware')
+r.post('/send', c.sendMessage)
+r.get('/webhook', c.webhookVerify)
+r.post('/webhook', c.webhookReceive)
+r.get('/messages', protect, authorize('whatsapp'), c.getMessages)
+r.get('/stats', protect, authorize('whatsapp'), c.getStats)
+r.put('/messages/:id/read', protect, authorize('whatsapp'), c.markRead)
+r.put('/messages/:id/reply', protect, authorize('whatsapp'), c.replyMessage)
+module.exports = r

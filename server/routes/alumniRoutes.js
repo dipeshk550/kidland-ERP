@@ -1,0 +1,10 @@
+const r = require('express').Router()
+const { getAll, getOne, create, update, remove } = require('../controllers/crudController')
+const { Alumni } = require('../models/index')
+const { protect, authorize } = require('../middleware/authMiddleware')
+r.get('/', getAll(Alumni))
+r.get('/:id', getOne(Alumni))
+r.post('/', protect, authorize('alumni'), create(Alumni))
+r.put('/:id', protect, authorize('alumni'), update(Alumni))
+r.delete('/:id', protect, authorize('alumni'), remove(Alumni))
+module.exports = r

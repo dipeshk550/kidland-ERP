@@ -1,0 +1,12 @@
+const r = require('express').Router()
+const c = require('../controllers/rbacController')
+const { protect, authorize } = require('../middleware/authMiddleware')
+r.use(protect)
+r.get('/catalog', authorize('roles'), c.catalog)
+r.get('/roles', authorize('roles'), c.listRoles)
+r.post('/roles', authorize('roles','create'), c.createRole)
+r.put('/roles/:id', authorize('roles','edit'), c.updateRole)
+r.delete('/roles/:id', authorize('roles','delete'), c.deleteRole)
+r.put('/users/:id/access', authorize('roles','edit'), c.updateUserAccess)
+r.get('/audit', authorize('audit'), c.audit)
+module.exports = r

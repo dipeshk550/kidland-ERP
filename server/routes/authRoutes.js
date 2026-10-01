@@ -1,0 +1,10 @@
+const r = require('express').Router()
+const c = require('../controllers/authController')
+const { protect } = require('../middleware/authMiddleware')
+r.post('/login', c.login)
+r.get('/me', protect, c.getMe)
+r.post('/logout', protect, c.logout)
+r.put('/change-password', protect, c.changePassword)
+r.post('/forgot-password', c.requestPasswordReset)
+r.post('/reset-password', c.resetPassword)
+module.exports = r
