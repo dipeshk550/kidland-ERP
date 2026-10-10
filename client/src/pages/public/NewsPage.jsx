@@ -90,10 +90,10 @@ export default function NewsPage() {
                   {paged.map((n, i) => (
                     <motion.article
                       key={n._id || i}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 16 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.07 }}
+                      viewport={{ once: true, margin: '-40px' }}
+                      transition={{ delay: Math.min(i * 0.04, 0.15), duration: 0.3 }}
                       onClick={() => goToArticle(n._id)}
                       className="card-hover overflow-hidden group cursor-pointer flex flex-col"
                     >
@@ -103,6 +103,9 @@ export default function NewsPage() {
                           <img
                             src={n.img}
                             alt={n.title}
+                            loading={i < 3 ? 'eager' : 'lazy'}
+                            decoding="async"
+                            fetchpriority={i === 0 ? 'high' : 'low'}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             onError={e => {
                               e.target.parentElement.style.background = 'linear-gradient(135deg,#0f2d06,#1a4a0a)'

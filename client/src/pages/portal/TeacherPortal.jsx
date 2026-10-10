@@ -67,6 +67,54 @@ export default function TeacherPortal() {
       <Stat icon={FaChartLine} label="Exams / quizzes" value={quizzes.length}/>
       <Stat icon={FaUser} label="Profile" value="Active"/>
     </div>
+
+    {/* ── Role & Permissions Card ─────────────────────────────── */}
+    <div className="card p-5 mb-6">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Your Role & Access</p>
+          {user?.customRole ? (
+            <>
+              <h3 className="font-bold text-gray-900 dark:text-white text-base">
+                {user.customRole.label || user.customRole.name}
+              </h3>
+              {user.customRole.description && (
+                <p className="text-sm text-gray-500 mt-0.5">{user.customRole.description}</p>
+              )}
+              <span className={`inline-block mt-2 text-xs font-semibold px-2 py-0.5 rounded-full ${user.customRole.isActive !== false ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                {user.customRole.isActive !== false ? 'Active' : 'Inactive'}
+              </span>
+            </>
+          ) : (
+            <>
+              <h3 className="font-bold text-gray-900 dark:text-white text-base">Teacher</h3>
+              <p className="text-sm text-gray-500 mt-0.5">Standard teacher access — LMS, assignments, attendance</p>
+            </>
+          )}
+        </div>
+        {user?.customRole && (
+          <Link to="/admin" className="shrink-0 text-sm font-semibold px-4 py-2 rounded-lg bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors">
+            Open Admin Panel →
+          </Link>
+        )}
+      </div>
+
+      {/* Permission modules */}
+      {user?.customRole?.permissions?.length > 0 && (
+        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Permitted Modules</p>
+          <div className="flex flex-wrap gap-2">
+            {user.customRole.permissions.map(p => (
+              <div key={p.module} className="border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5 text-xs">
+                <span className="font-semibold capitalize text-gray-700 dark:text-gray-300">{p.module}</span>
+                <span className="text-gray-400 ml-1.5">{(p.actions || []).join(', ')}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+
     {error && <div className="card p-4 mb-5 text-sm text-red-600">{error}</div>}
     <div className="mb-6"><TimetableGrid entries={timetable} title="My weekly timetable" compact/></div>
     {loading ? <div className="card p-6 text-gray-500">Loading teaching workspace…</div> : <div className="grid lg:grid-cols-3 gap-5">

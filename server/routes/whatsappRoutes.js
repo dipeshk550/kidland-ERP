@@ -1,7 +1,16 @@
 const r = require('express').Router()
 const c = require('../controllers/whatsappController')
 const { protect, authorize } = require('../middleware/authMiddleware')
-r.post('/send', c.sendMessage)
+const rateLimit = require('express-rate-limit')
+
+const waSendLimit = rateLimit({
+  windowMs: 10 * 60 * 1000,  // 10 minutes
+  max: 10,                    // max 10 widget messages per IP per 10 min
+  message: { message: 'Too many messages sent. Please try again later.' },
+  standardHeaders: true, legacyHeaders: false,
+})
+
+r.post('/send', waSendLimit, c.sendMessage)
 r.get('/webhook', c.webhookVerify)
 r.post('/webhook', c.webhookReceive)
 r.get('/messages', protect, authorize('whatsapp'), c.getMessages)

@@ -1,9 +1,19 @@
 const r = require('express').Router()
 const { Contact } = require('../models/index')
 const { protect, authorize } = require('../middleware/authMiddleware')
+const rateLimit = require('express-rate-limit')
 
-// POST /api/contact — public, no auth
-r.post('/', async (req, res) => {
+// Strict rate limit for the public contact form — prevents spam
+const contactFormLimit = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 5,
+  message: { message: 'Too many messages sent. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+})
+
+// POST /api/contact — public, rate-limited
+r.post('/', contactFormLimit, async (req, res) => {
   try {
     const { name, email, phone, subject, message } = req.body
     if (!name || !email || !subject || !message)
@@ -19,19 +29,23 @@ r.post('/', async (req, res) => {
 r.get('/', protect, authorize('contacts'), async (req, res) => {
   try {
     const { page = 1, limit = 15, status, search = '' } = req.query
+    const safeLimit = Math.min(parseInt(limit) || 15, 100)
     const query = {}
     if (status && status !== 'all') query.status = status
-    if (search) query.$or = [
-      { name:    new RegExp(search, 'i') },
-      { email:   new RegExp(search, 'i') },
-      { subject: new RegExp(search, 'i') },
-    ]
-    const skip = (parseInt(page) - 1) * parseInt(limit)
+    if (search) {
+      const safe = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').slice(0, 100)
+      query.$or = [
+        { name:    new RegExp(safe, 'i') },
+        { email:   new RegExp(safe, 'i') },
+        { subject: new RegExp(safe, 'i') },
+      ]
+    }
+    const skip = (Math.max(parseInt(page) || 1, 1) - 1) * safeLimit
     const [data, total] = await Promise.all([
-      Contact.find(query).sort('-createdAt').skip(skip).limit(parseInt(limit)),
+      Contact.find(query).sort('-createdAt').skip(skip).limit(safeLimit),
       Contact.countDocuments(query),
     ])
-    res.json({ data, total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) })
+    res.json({ data, total, page: parseInt(page) || 1, pages: Math.ceil(total / safeLimit) })
   } catch (err) {
     res.status(500).json({ message: err.message })
   }

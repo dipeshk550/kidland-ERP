@@ -12,11 +12,6 @@ import api from '../../services/api'
 
 const STATUS_COLORS = { pending: 'badge-yellow', approved: 'badge-green', rejected: 'badge-red' }
 const PER = 8
-const API_BASE = (() => {
-  const url = import.meta.env.VITE_API_URL
-  if (url) return url.replace('/api', '')
-  return ''
-})()
 const DOC_FIELDS = [
   { key: 'birthCert',    label: 'Birth Certificate' },
   { key: 'markSheet',    label: 'Previous Mark Sheet' },
@@ -168,9 +163,39 @@ export default function ManageAdmissions() {
     rejected: items.filter(i => i.status === 'rejected').length,
   }
 
-  const docUrl = (path, admissionId, field) => path?.startsWith('http')
-    ? path
-    : `${API_BASE}/api/admissions/${admissionId}/documents/${field}`
+  // ── Authenticated document fetch (bearer token is sent, no auth failure) ──
+  const fetchDocBlob = (admissionId, field) =>
+    api.get(`/admissions/${admissionId}/documents/${field}`, { responseType: 'blob' })
+
+  const viewDoc = async (admissionId, field, label) => {
+    try {
+      const blob = await fetchDocBlob(admissionId, field)
+      const url = URL.createObjectURL(blob)
+      const win = window.open(url, '_blank')
+      // Revoke after a delay so the tab has time to render the file
+      setTimeout(() => URL.revokeObjectURL(url), 30000)
+      if (!win) toast.error('Pop-up blocked — allow pop-ups and try again')
+    } catch {
+      toast.error(`Failed to open ${label}`)
+    }
+  }
+
+  const downloadDoc = async (admissionId, field, label) => {
+    try {
+      const blob = await fetchDocBlob(admissionId, field)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = label.replace(/\s+/g, '_') + (blob.type.includes('pdf') ? '.pdf' : '.jpg')
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      setTimeout(() => URL.revokeObjectURL(url), 5000)
+      toast.success(`${label} downloaded`)
+    } catch {
+      toast.error(`Failed to download ${label}`)
+    }
+  }
 
   return (
     <AdminPage
@@ -373,14 +398,20 @@ export default function ManageAdmissions() {
                       </div>
                       {path && (
                         <div className="flex gap-1.5 shrink-0">
-                          <a href={docUrl(path, viewing._id || viewing.id, d.key)} target="_blank" rel="noopener noreferrer"
-                            className="w-8 h-8 rounded-lg bg-primary-50 dark:bg-primary-900/20 text-primary-500 flex items-center justify-center hover:bg-primary-100 transition-colors">
+                          {/* View — fetches via api (Bearer token sent) then opens blob URL */}
+                          <button
+                            onClick={() => viewDoc(viewing._id || viewing.id, d.key, d.label)}
+                            title={`View ${d.label}`}
+                            className="w-8 h-8 rounded-lg bg-primary-50 dark:bg-primary-900/20 text-primary-500 flex items-center justify-center hover:bg-primary-100 dark:hover:bg-primary-900/40 transition-colors">
                             <FaExternalLinkAlt size={11} />
-                          </a>
-                          <a href={docUrl(path, viewing._id || viewing.id, d.key)} download
-                            className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-500 flex items-center justify-center hover:bg-gray-100 transition-colors">
+                          </button>
+                          {/* Download — same fetch, triggers browser save dialog */}
+                          <button
+                            onClick={() => downloadDoc(viewing._id || viewing.id, d.key, d.label)}
+                            title={`Download ${d.label}`}
+                            className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-500 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                             <FaDownload size={11} />
-                          </a>
+                          </button>
                         </div>
                       )}
                     </div>

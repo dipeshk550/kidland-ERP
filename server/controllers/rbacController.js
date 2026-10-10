@@ -61,6 +61,55 @@ exports.updateUserAccess = async (req, res) => {
   res.json({ data: await User.findById(user._id).select('-password').populate('customRole') })
 }
 exports.audit = async (req, res) => {
-  const limit = Math.min(Number(req.query.limit) || 100, 500)
-  res.json({ data: await AuditLog.find().sort('-createdAt').limit(limit).populate('actor','name email role') })
+  try {
+    const { page = 1, limit = 50, action, entity, search, from, to, actorId } = req.query
+    const safeLimit = Math.min(Number(limit) || 50, 200)
+    const query = {}
+
+    if (action)   query.action = action
+    if (entity)   query.entity = entity
+    if (actorId)  query.actor  = actorId
+
+    // Date range filter
+    if (from || to) {
+      query.createdAt = {}
+      if (from) query.createdAt.$gte = new Date(from)
+      if (to)   query.createdAt.$lte = new Date(new Date(to).setHours(23, 59, 59, 999))
+    }
+
+    const skip = (Math.max(Number(page) || 1, 1) - 1) * safeLimit
+
+    // If searching by actor name we need a pipeline
+    if (search) {
+      const safe = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').slice(0, 80)
+      const pipeline = [
+        { $match: query },
+        { $sort: { createdAt: -1 } },
+        { $lookup: { from: 'users', localField: 'actor', foreignField: '_id', as: 'actorDoc' } },
+        { $unwind: { path: '$actorDoc', preserveNullAndEmpty: true } },
+        { $match: { $or: [
+          { 'actorDoc.name':  new RegExp(safe, 'i') },
+          { 'actorDoc.email': new RegExp(safe, 'i') },
+          { action:           new RegExp(safe, 'i') },
+          { entity:           new RegExp(safe, 'i') },
+        ]}},
+        { $facet: {
+          data:  [{ $skip: skip }, { $limit: safeLimit }],
+          total: [{ $count: 'n' }],
+        }},
+      ]
+      const [result] = await AuditLog.aggregate(pipeline)
+      const data  = (result?.data || []).map(doc => ({
+        ...doc,
+        actor: doc.actorDoc ? { _id: doc.actorDoc._id, name: doc.actorDoc.name, email: doc.actorDoc.email, role: doc.actorDoc.role } : null,
+      }))
+      return res.json({ data, total: result?.total?.[0]?.n || 0, page: Number(page), pages: Math.ceil((result?.total?.[0]?.n || 0) / safeLimit) })
+    }
+
+    const [data, total] = await Promise.all([
+      AuditLog.find(query).sort('-createdAt').skip(skip).limit(safeLimit).populate('actor', 'name email role'),
+      AuditLog.countDocuments(query),
+    ])
+    res.json({ data, total, page: Number(page) || 1, pages: Math.ceil(total / safeLimit) })
+  } catch (err) { res.status(500).json({ message: err.message }) }
 }

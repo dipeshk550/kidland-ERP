@@ -146,9 +146,9 @@ export default function NewsArticlePage() {
 
               {/* ── MAIN ARTICLE COLUMN ── */}
               <motion.article
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45 }}
+                transition={{ duration: 0.3 }}
                 className="flex-1 min-w-0"
               >
                 {/* Featured Image */}
@@ -157,6 +157,9 @@ export default function NewsArticlePage() {
                     <img
                       src={article.img}
                       alt={article.title}
+                      loading="eager"
+                      decoding="async"
+                      fetchpriority="high"
                       className="w-full h-full object-cover"
                       onError={e => { e.target.parentElement.style.background = 'linear-gradient(135deg,#0f2d06,#1a4a0a)'; e.target.style.display = 'none' }}
                     />
@@ -229,16 +232,70 @@ export default function NewsArticlePage() {
                   </p>
                 )}
 
-                {/* Article Body */}
-                <div className="prose prose-slate dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed text-base">
-                  {(article.content || '').split('\n').map((para, i) =>
-                    para.trim() ? (
-                      <p key={i} className="mb-5 leading-[1.85]">{para}</p>
-                    ) : (
-                      <div key={i} className="mb-3" />
-                    )
-                  )}
-                </div>
+                {/* Article Body — split at midpoint with sub-images inserted */}
+                {(() => {
+                  const paras = (article.content || '').split('\n')
+                  const mid   = Math.ceil(paras.length / 2)
+                  const firstHalf  = paras.slice(0, mid)
+                  const secondHalf = paras.slice(mid)
+                  const hasSubImgs = article.subImg1 || article.subImg2
+
+                  return (
+                    <div className="prose prose-slate dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed text-base">
+                      {/* First half of content */}
+                      {firstHalf.map((para, i) =>
+                        para.trim()
+                          ? <p key={`f${i}`} className="mb-5 leading-[1.85]">{para}</p>
+                          : <div key={`f${i}`} className="mb-3" />
+                      )}
+
+                      {/* Sub-images grid — only shown when at least one exists */}
+                      {hasSubImgs && (
+                        <div className={`my-8 grid gap-4 not-prose ${article.subImg1 && article.subImg2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                          {article.subImg1 && (
+                            <figure className="rounded-xl overflow-hidden shadow-md">
+                              <img
+                                src={article.subImg1}
+                                alt="Article sub image 1"
+                                loading="lazy"
+                                decoding="async"
+                                className="w-full object-cover"
+                                style={{ maxHeight: '280px' }}
+                                onError={e => { e.target.parentElement.style.display = 'none' }}
+                              />
+                              <figcaption className="text-center text-xs text-gray-400 bg-gray-50 dark:bg-gray-900 py-2 px-3">
+                                Image 1
+                              </figcaption>
+                            </figure>
+                          )}
+                          {article.subImg2 && (
+                            <figure className="rounded-xl overflow-hidden shadow-md">
+                              <img
+                                src={article.subImg2}
+                                alt="Article sub image 2"
+                                loading="lazy"
+                                decoding="async"
+                                className="w-full object-cover"
+                                style={{ maxHeight: '280px' }}
+                                onError={e => { e.target.parentElement.style.display = 'none' }}
+                              />
+                              <figcaption className="text-center text-xs text-gray-400 bg-gray-50 dark:bg-gray-900 py-2 px-3">
+                                Image 2
+                              </figcaption>
+                            </figure>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Second half of content */}
+                      {secondHalf.map((para, i) =>
+                        para.trim()
+                          ? <p key={`s${i}`} className="mb-5 leading-[1.85]">{para}</p>
+                          : <div key={`s${i}`} className="mb-3" />
+                      )}
+                    </div>
+                  )
+                })()}
 
                 {/* Back nav */}
                 <div className="mt-10 pt-6 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between flex-wrap gap-4">

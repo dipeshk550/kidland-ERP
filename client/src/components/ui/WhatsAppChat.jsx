@@ -21,8 +21,18 @@ export default function WhatsAppChat() {
   const send = async (text) => {
     const m = text || msg
     if (!m.trim()) return
-    try { await api.post('/whatsapp/messages', { message: m }) } catch {}
-    window.open(`https://api.whatsapp.com/send?phone=${WA}&text=${encodeURIComponent(m)}`, '_blank')
+    try {
+      // Save to admin inbox AND get the correct WhatsApp URL from server
+      const res = await api.post('/whatsapp/send', {
+        senderName: 'Website Visitor',
+        message: m.trim(),
+      })
+      const waUrl = res?.waUrl || `https://api.whatsapp.com/send?phone=${WA}&text=${encodeURIComponent(m.trim())}`
+      window.open(waUrl, '_blank')
+    } catch {
+      // Even if save fails, still open WhatsApp for the visitor
+      window.open(`https://api.whatsapp.com/send?phone=${WA}&text=${encodeURIComponent(m.trim())}`, '_blank')
+    }
     setSent(true); setMsg('')
     setTimeout(() => { setSent(false); setOpen(false) }, 2000)
   }

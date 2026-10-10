@@ -103,8 +103,11 @@ function Guard({ children, superOnly=false, adminOnly=false }) {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-gray-950"><div className="w-10 h-10 border-4 border-primary-200 border-t-primary-400 rounded-full animate-spin"/></div>
   if (!user) return <Navigate to="/admin/login" replace/>
   if (user.role === 'student') return <Navigate to="/lms/courses" replace/>
-  if (user.role === 'teacher') return <Navigate to="/teacher" replace/>
-  if (user.role === 'parent') return <Navigate to="/parent" replace/>
+  // Teachers/parents WITHOUT a custom admin role go to their portals.
+  // If they DO have a customRole assigned, allow them into the admin layout
+  // so they can use the modules their role grants them.
+  if (user.role === 'teacher' && !user.customRole) return <Navigate to="/teacher" replace/>
+  if (user.role === 'parent'  && !user.customRole) return <Navigate to="/parent"  replace/>
   if (superOnly && user.role !== 'superadmin') return <Navigate to="/admin" replace/>
   if (adminOnly && !['superadmin','admin'].includes(user.role)) return <Navigate to="/admin" replace/>
   return children

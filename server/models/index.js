@@ -31,7 +31,7 @@ userSchema.pre('save', async function(next) { if (!this.isModified('password')) 
 userSchema.methods.comparePassword = function(c) { return bcrypt.compare(c, this.password) }
 const User = mongoose.model('User', userSchema)
 
-const newsSchema = new mongoose.Schema({ title:{type:String,required:true}, slug:{type:String,unique:true}, excerpt:String, content:{type:String,required:true}, img:String, cat:{type:String,default:'General'}, author:{type:mongoose.Schema.Types.ObjectId,ref:'User'}, status:{type:String,enum:['draft','published'],default:'draft'}, views:{type:Number,default:0} }, { timestamps: true })
+const newsSchema = new mongoose.Schema({ title:{type:String,required:true}, slug:{type:String,unique:true}, excerpt:String, content:{type:String,required:true}, img:String, subImg1:String, subImg2:String, cat:{type:String,default:'General'}, author:{type:mongoose.Schema.Types.ObjectId,ref:'User'}, status:{type:String,enum:['draft','published'],default:'draft'}, views:{type:Number,default:0} }, { timestamps: true })
 newsSchema.pre('save', function(next) { if (!this.slug||this.isModified('title')) this.slug=this.title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')+'-'+Date.now(); next() })
 const News = mongoose.model('News', newsSchema)
 
@@ -672,6 +672,8 @@ const auditLogSchema = new mongoose.Schema({
   details: mongoose.Schema.Types.Mixed,
   ip: String,
 }, { timestamps: true })
+// Auto-delete audit logs after 90 days (3 months) — MongoDB TTL index
+auditLogSchema.index({ createdAt: 1 }, { expireAfterSeconds: 90 * 24 * 60 * 60 })
 const AuditLog = mongoose.model('AuditLog', auditLogSchema)
 
 // Attendance & timetable domain. These records reference existing users and

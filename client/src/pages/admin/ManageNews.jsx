@@ -27,7 +27,9 @@ export default function ManageNews() {
   const [modal,    setModal]    = useState(false)
   const [editing,  setEditing]  = useState(null)
   const [confirmId,setConfirmId]= useState(null)
-  const [imgPreview, setImgPreview] = useState(null)
+  const [imgPreview,     setImgPreview]     = useState(null)
+  const [subImg1Preview, setSubImg1Preview] = useState(null)
+  const [subImg2Preview, setSubImg2Preview] = useState(null)
   const { register, handleSubmit, reset, formState: { errors } } = useForm()
 
   useEffect(() => {
@@ -46,18 +48,20 @@ export default function ManageNews() {
 
   const openAdd = () => {
     setEditing(null)
-    setImgPreview(null)
+    setImgPreview(null); setSubImg1Preview(null); setSubImg2Preview(null)
     reset({ title:'', cat:'General', status:'draft', excerpt:'', content:'' })
     setModal(true)
   }
   const openEdit = (item) => {
     setEditing(item)
     setImgPreview(item.img || item.image || null)
+    setSubImg1Preview(item.subImg1 || null)
+    setSubImg2Preview(item.subImg2 || null)
     reset({ title:item.title||'', cat:item.cat||'General', status:item.status||'draft', excerpt:item.excerpt||'', content:item.content||'' })
     setModal(true)
   }
   const onSubmit = async (formValues) => {
-    const data = { ...formValues, img: imgPreview }
+    const data = { ...formValues, img: imgPreview, subImg1: subImg1Preview, subImg2: subImg2Preview }
     const now = new Date().toISOString().slice(0, 10)
     try {
       if (editing) {
@@ -119,7 +123,7 @@ export default function ManageNews() {
         </div>
       )}
       <Pagination page={page} total={filtered.length} perPage={PER} onChange={setPage}/>
-      <Modal open={modal} onClose={()=>{setModal(false);reset();setImgPreview(null)}} title={editing?'Edit Article':'New Article'} size="lg">
+      <Modal open={modal} onClose={()=>{setModal(false);reset();setImgPreview(null);setSubImg1Preview(null);setSubImg2Preview(null)}} title={editing?'Edit Article':'New Article'} size="lg">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div><label className="label">Title *</label><input {...register('title',{required:'Required'})} className={`field ${errors.title?'field-error':''}`} placeholder="Article title"/>{errors.title&&<p className="error-msg">{errors.title.message}</p>}</div>
           <div className="grid sm:grid-cols-2 gap-4">
@@ -128,9 +132,20 @@ export default function ManageNews() {
           </div>
           <div><label className="label">Excerpt</label><textarea {...register('excerpt')} rows={2} className="field resize-none" placeholder="Short summary..."/></div>
           <div><label className="label">Content *</label><textarea {...register('content',{required:'Required'})} rows={6} className={`field resize-none ${errors.content?'field-error':''}`} placeholder="Full article content..."/>{errors.content&&<p className="error-msg">{errors.content.message}</p>}</div>
-          <ImageUpload label="Featured Image" value={imgPreview} onChange={(dataUrl) => setImgPreview(dataUrl)} />
+
+          {/* Images section */}
+          <div className="border border-gray-100 dark:border-gray-800 rounded-xl p-4 space-y-4 bg-gray-50 dark:bg-gray-900/40">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Images</p>
+            <ImageUpload label="Featured Image (Main)" value={imgPreview} onChange={(dataUrl) => setImgPreview(dataUrl)} />
+            <div className="grid sm:grid-cols-2 gap-4 pt-2 border-t border-gray-100 dark:border-gray-800">
+              <ImageUpload label="Sub Image 1" value={subImg1Preview} onChange={(dataUrl) => setSubImg1Preview(dataUrl)} />
+              <ImageUpload label="Sub Image 2" value={subImg2Preview} onChange={(dataUrl) => setSubImg2Preview(dataUrl)} />
+            </div>
+            <p className="text-[11px] text-gray-400">Sub images appear side-by-side within the article body on the public page.</p>
+          </div>
+
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={()=>{setModal(false);reset();setImgPreview(null)}} className="btn-ghost">Cancel</button>
+            <button type="button" onClick={()=>{setModal(false);reset();setImgPreview(null);setSubImg1Preview(null);setSubImg2Preview(null)}} className="btn-ghost">Cancel</button>
             <button type="submit" className="btn-primary">{editing?'Update Article':'Publish Article'}</button>
           </div>
         </form>
