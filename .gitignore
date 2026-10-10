@@ -1,0 +1,9 @@
+# Dependencies and cache
+node_modules/
+client/node_modules/
+
+# Environment secrets
+server/.env.production
+
+# Private uploaded documents
+server/uploads/documents/
